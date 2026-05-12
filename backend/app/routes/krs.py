@@ -149,17 +149,18 @@ def ajukan_krs():
         "catatan": None,
     }
     try:
-        ins = _sb().table("krs").insert(row).select("*, mata_kuliah(*)").maybe_single().execute()
+        ins = _sb().table("krs").insert(row).select("*, mata_kuliah(*)").execute()
     except APIError as e:
         msg = str(getattr(e, "message", e))
         if "duplicate" in msg.lower() or "unique" in msg.lower():
             return err("Mata kuliah sudah terdaftar untuk semester ini", 409)
         return err(msg, 400)
 
-    if not ins.data:
+    ins_rows = ins.data or []
+    if not ins_rows:
         return err("Gagal mengajukan KRS: tidak ada data dikembalikan", 500)
 
-    return ok(ins.data, "KRS diajukan", 201)
+    return ok(ins_rows[0], "KRS diajukan", 201)
 
 
 @bp.route("/<kid>", methods=["DELETE"])
@@ -211,14 +212,14 @@ def approve_krs(kid):
             .update({"status": "disetujui", "catatan": None})
             .eq("id", kid)
             .select("*, mata_kuliah(*)")
-            .maybe_single()
             .execute()
         )
     except APIError as e:
         return err(str(getattr(e, "message", e)), 400)
-    if not out.data:
+    out_rows = out.data or []
+    if not out_rows:
         return err("KRS tidak ditemukan atau gagal memperbarui", 404)
-    return ok(out.data, "KRS disetujui")
+    return ok(out_rows[0], "KRS disetujui")
 
 
 @bp.route("/<kid>/reject", methods=["PUT"])
@@ -249,14 +250,14 @@ def reject_krs(kid):
             .update({"status": "ditolak", "catatan": catatan})
             .eq("id", kid)
             .select("*, mata_kuliah(*)")
-            .maybe_single()
             .execute()
         )
     except APIError as e:
         return err(str(getattr(e, "message", e)), 400)
-    if not out.data:
+    out_rows = out.data or []
+    if not out_rows:
         return err("KRS tidak ditemukan atau gagal memperbarui", 404)
-    return ok(out.data, "KRS ditolak")
+    return ok(out_rows[0], "KRS ditolak")
 
 
 @bp.route("/summary/<mahasiswa_id>", methods=["GET"])

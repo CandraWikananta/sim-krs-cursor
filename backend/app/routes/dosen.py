@@ -94,18 +94,19 @@ def update_dosen(did):
         return err("Tidak ada field yang diperbarui")
 
     try:
-        out = _sb().table("dosen").update(updates).eq("id", did).select().maybe_single().execute()
+        out = _sb().table("dosen").update(updates).eq("id", did).select().execute()
     except APIError as e:
         msg = str(getattr(e, "message", e))
         if "duplicate" in msg.lower():
             return err("NIDN atau email bentrok", 409)
         return err(msg, 400)
 
-    if not out.data:
+    out_rows = out.data or []
+    if not out_rows:
         return err("Dosen tidak ditemukan atau gagal memperbarui", 404)
 
     cache_delete("list:dosen")
-    return ok(strip_hash(out.data), "Dosen diperbarui")
+    return ok(strip_hash(out_rows[0]), "Dosen diperbarui")
 
 
 @bp.route("/<did>", methods=["DELETE"])
@@ -186,14 +187,14 @@ def assign_pa():
             .update({"dosen_pa_id": dpid})
             .eq("id", mid)
             .select()
-            .maybe_single()
             .execute()
         )
     except APIError as e:
         return err(str(getattr(e, "message", e)), 400)
 
-    if not out.data:
+    out_rows = out.data or []
+    if not out_rows:
         return err("Mahasiswa tidak ditemukan atau gagal memperbarui", 404)
 
     cache_delete("list:mahasiswa")
-    return ok(strip_hash(out.data), "Dosen PA berhasil ditetapkan")
+    return ok(strip_hash(out_rows[0]), "Dosen PA berhasil ditetapkan")

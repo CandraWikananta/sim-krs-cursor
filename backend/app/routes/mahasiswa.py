@@ -70,18 +70,19 @@ def create_mahasiswa():
         row["dosen_pa_id"] = str(dosen_pa_id)
 
     try:
-        res = _sb().table("mahasiswa").insert(row).select().maybe_single().execute()
+        res = _sb().table("mahasiswa").insert(row).select().execute()
     except APIError as e:
         msg = str(getattr(e, "message", e))
         if "duplicate" in msg.lower() or "unique" in msg.lower():
             return err("NIM atau email sudah terdaftar", 409)
         return err(msg, 400)
 
-    if not res.data:
+    rows = res.data or []
+    if not rows:
         return err("Gagal membuat mahasiswa: tidak ada data dikembalikan", 500)
 
     cache_delete("list:mahasiswa")
-    return ok(strip_hash(res.data), "Mahasiswa dibuat", 201)
+    return ok(strip_hash(rows[0]), "Mahasiswa dibuat", 201)
 
 
 @bp.route("", methods=["GET"])
@@ -186,7 +187,7 @@ def update_mahasiswa(mid):
 
     try:
         out = (
-            _sb().table("mahasiswa").update(updates).eq("id", mid).select().maybe_single().execute()
+            _sb().table("mahasiswa").update(updates).eq("id", mid).select().execute()
         )
     except APIError as e:
         msg = str(getattr(e, "message", e))
@@ -194,11 +195,12 @@ def update_mahasiswa(mid):
             return err("NIM atau email bentrok", 409)
         return err(msg, 400)
 
-    if not out.data:
+    out_rows = out.data or []
+    if not out_rows:
         return err("Mahasiswa tidak ditemukan atau gagal memperbarui", 404)
 
     cache_delete("list:mahasiswa")
-    return ok(strip_hash(out.data), "Mahasiswa diperbarui")
+    return ok(strip_hash(out_rows[0]), "Mahasiswa diperbarui")
 
 
 @bp.route("/<mid>", methods=["DELETE"])
