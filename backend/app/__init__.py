@@ -1,4 +1,5 @@
 import logging
+from typing import List, Tuple
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -12,6 +13,27 @@ from app.routes.mahasiswa import bp as mahasiswa_bp
 from app.routes.mata_kuliah import bp as mata_kuliah_bp
 
 logger = logging.getLogger(__name__)
+
+
+def _cors_origins_from_config(cfg) -> Tuple[List[str], bool]:
+    """
+    FRONTEND_URL bisa beberapa origin, dipisah koma.
+    Contoh: https://sim-krs.netlify.app,http://localhost:3000
+    Slash di akhir diabaikan agar cocok dengan header Origin browser.
+    """
+    raw = (cfg.get("FRONTEND_URL") or "").strip()
+    if not raw:
+        raw = "http://localhost:3000"
+    if raw == "*":
+        return (["*"], False)
+    origins = []
+    for part in raw.split(","):
+        o = part.strip().rstrip("/")
+        if o:
+            origins.append(o)
+    if not origins:
+        origins = ["http://localhost:3000"]
+    return (origins, True)
 
 
 def create_app():
@@ -31,11 +53,13 @@ def create_app():
     client: Client = create_client(supabase_url, supabase_key)
     app.extensions["supabase"] = client
 
-    frontend = app.config.get("FRONTEND_URL") or "*"
+    cors_origins, allow_credentials = _cors_origins_from_config(app.config)
     CORS(
         app,
-        resources={r"/api/*": {"origins": frontend}},
-        supports_credentials=True,
+        resources={r"/api/*": {"origins": cors_origins}},
+        supports_credentials=allow_credentials,
+        allow_headers=["Content-Type", "Authorization"],
+        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     )
 
     app.register_blueprint(auth_bp)
