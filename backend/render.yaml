@@ -1,0 +1,35 @@
+# Pakai file ini hanya jika repositori Git Anda **hanya** berisi folder backend
+# (akar repo = isi backend). Untuk monorepo sim-krs-old, pakai render.yaml di
+# **akar proyek** (satu tingkat di atas) dengan rootDir: backend.
+#
+# Validasi: dari folder backend → render blueprints validate .\render.yaml
+
+services:
+  - type: web
+    name: sim-krs-backend
+    runtime: python
+    region: singapore
+    plan: free
+    rootDir: .
+    buildCommand: pip install -r requirements.txt
+    # Render wajib bind ke 0.0.0.0 dan PORT — atur juga di dashboard sebagai Start Command jika perlu
+    startCommand: gunicorn --bind 0.0.0.0:$PORT run:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: "3.11.6"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
