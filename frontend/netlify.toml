@@ -1,0 +1,22 @@
+# Konfigurasi Netlify untuk Next.js (static export → folder `out`).
+#
+# - Deploy lewat Git: Netlify menjalankan buildCommand dan menerbitkan `out`.
+# - Deploy drag & drop: unggah isi folder `out` (lihat NETLIFY_DEPLOY_DRAG_DROP.md).
+#   File netlify.toml di akar proyek frontend biasanya tidak diproses untuk deploy manual
+#   murni; tetap berguna jika Anda beralih ke deploy dari Git.
+
+[build]
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Header keamanan dasar (efektif saat deploy memakai Git + build di Netlify,
+# atau jika Anda menyertakan file `_headers` hasil copy ke `out` — lihat public/_headers)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

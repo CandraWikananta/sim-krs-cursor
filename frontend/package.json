@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node -e \"const fs=require('fs');const p='public/_headers',o='out/_headers';if(fs.existsSync(p))fs.copyFileSync(p,o);\"",
     "start": "next start",
     "lint": "next lint"
   },

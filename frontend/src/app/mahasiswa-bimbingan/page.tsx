@@ -74,7 +74,9 @@ export default function MahasiswaBimbinganPage() {
                       <TableCell>{m.jurusan ?? "—"}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="outline" size="sm" asChild>
-                          <Link href={`/mahasiswa-bimbingan/${m.id}`}>Lihat KRS</Link>
+                          <Link href={`/mahasiswa-bimbingan/detail?id=${m.id}`}>
+                            Lihat KRS
+                          </Link>
                         </Button>
                       </TableCell>
                     </TableRow>
