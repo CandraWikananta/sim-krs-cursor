@@ -1,0 +1,20 @@
+# Netlify — repo monorepo (akar = sim-krs-old).
+# Frontend Next.js (static export) ada di subfolder `frontend/`.
+#
+# Setelah hubungkan GitHub ke Netlify, biasanya TIDAK perlu mengubah apa pun
+# di dashboard jika file ini sudah ada di repo.
+
+[build]
+  base = "frontend"
+  command = "npm install && npm run build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

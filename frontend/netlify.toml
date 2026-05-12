@@ -1,9 +1,10 @@
-# Konfigurasi Netlify untuk Next.js (static export → folder `out`).
+# Hanya dipakai jika repository Git Anda **hanya** berisi folder frontend (akar = frontend).
 #
-# - Deploy lewat Git: Netlify menjalankan buildCommand dan menerbitkan `out`.
-# - Deploy drag & drop: unggah isi folder `out` (lihat NETLIFY_DEPLOY_DRAG_DROP.md).
-#   File netlify.toml di akar proyek frontend biasanya tidak diproses untuk deploy manual
-#   murni; tetap berguna jika Anda beralih ke deploy dari Git.
+# Untuk monorepo sim-krs-old (frontend + backend di satu repo), Netlify memakai
+# `netlify.toml` di **akar repo** dengan `base = "frontend"` — lihat ../netlify.toml
+#
+# Deploy drag & drop: unggah isi folder `out` — lihat NETLIFY_DEPLOY_DRAG_DROP.md
+# Deploy GitHub: lihat NETLIFY_DEPLOY_GITHUB.md
 
 [build]
   command = "npm run build"
