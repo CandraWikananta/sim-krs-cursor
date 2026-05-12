@@ -149,12 +149,15 @@ def ajukan_krs():
         "catatan": None,
     }
     try:
-        ins = _sb().table("krs").insert(row).select("*, mata_kuliah(*)").single().execute()
+        ins = _sb().table("krs").insert(row).select("*, mata_kuliah(*)").maybe_single().execute()
     except APIError as e:
         msg = str(getattr(e, "message", e))
         if "duplicate" in msg.lower() or "unique" in msg.lower():
             return err("Mata kuliah sudah terdaftar untuk semester ini", 409)
         return err(msg, 400)
+
+    if not ins.data:
+        return err("Gagal mengajukan KRS: tidak ada data dikembalikan", 500)
 
     return ok(ins.data, "KRS diajukan", 201)
 
@@ -208,11 +211,13 @@ def approve_krs(kid):
             .update({"status": "disetujui", "catatan": None})
             .eq("id", kid)
             .select("*, mata_kuliah(*)")
-            .single()
+            .maybe_single()
             .execute()
         )
     except APIError as e:
         return err(str(getattr(e, "message", e)), 400)
+    if not out.data:
+        return err("KRS tidak ditemukan atau gagal memperbarui", 404)
     return ok(out.data, "KRS disetujui")
 
 
@@ -244,11 +249,13 @@ def reject_krs(kid):
             .update({"status": "ditolak", "catatan": catatan})
             .eq("id", kid)
             .select("*, mata_kuliah(*)")
-            .single()
+            .maybe_single()
             .execute()
         )
     except APIError as e:
         return err(str(getattr(e, "message", e)), 400)
+    if not out.data:
+        return err("KRS tidak ditemukan atau gagal memperbarui", 404)
     return ok(out.data, "KRS ditolak")
 
 

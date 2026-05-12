@@ -58,12 +58,14 @@ def create_mata_kuliah():
     if dosen_id and valid_uuid(str(dosen_id)):
         row["dosen_pengampu_id"] = str(dosen_id)
     try:
-        ins = _sb().table("mata_kuliah").insert(row).select().single().execute()
+        ins = _sb().table("mata_kuliah").insert(row).select().maybe_single().execute()
     except APIError as e:
         msg = str(getattr(e, "message", e))
         if "duplicate" in msg.lower():
             return err("Kode mata kuliah sudah ada", 409)
         return err(msg, 400)
+    if not ins.data:
+        return err("Gagal membuat mata kuliah: tidak ada data dikembalikan", 500)
     cache_delete("list:mata_kuliah")
     return ok(ins.data, "Mata kuliah dibuat", 201)
 
@@ -116,7 +118,7 @@ def update_mata_kuliah(mkid):
             .update(updates)
             .eq("id", mkid)
             .select()
-            .single()
+            .maybe_single()
             .execute()
         )
     except APIError as e:
@@ -124,6 +126,8 @@ def update_mata_kuliah(mkid):
         if "duplicate" in msg.lower():
             return err("Kode bentrok", 409)
         return err(msg, 400)
+    if not out.data:
+        return err("Mata kuliah tidak ditemukan atau gagal memperbarui", 404)
     cache_delete("list:mata_kuliah")
     return ok(out.data, "Mata kuliah diperbarui")
 

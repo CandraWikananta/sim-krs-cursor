@@ -82,12 +82,15 @@ def register_mahasiswa():
         row["dosen_pa_id"] = str(dosen_pa_id)
 
     try:
-        res = _supabase().table("mahasiswa").insert(row).select().single().execute()
+        res = _supabase().table("mahasiswa").insert(row).select().maybe_single().execute()
     except APIError as e:
         msg = str(e.message) if hasattr(e, "message") else str(e)
         if "duplicate" in msg.lower() or "unique" in msg.lower():
             return err("NIM atau email sudah terdaftar", 409)
         return err("Gagal mendaftar: " + msg, 400)
+
+    if not res.data:
+        return err("Gagal mendaftar: tidak ada data dikembalikan", 500)
 
     cache_delete("list:mahasiswa")
     user = strip_hash(res.data)
@@ -129,12 +132,15 @@ def register_dosen():
         "max_mahasiswa_bimbingan": max_m,
     }
     try:
-        res = _supabase().table("dosen").insert(row).select().single().execute()
+        res = _supabase().table("dosen").insert(row).select().maybe_single().execute()
     except APIError as e:
         msg = str(e.message) if hasattr(e, "message") else str(e)
         if "duplicate" in msg.lower() or "unique" in msg.lower():
             return err("NIDN atau email sudah terdaftar", 409)
         return err("Gagal menambah dosen: " + msg, 400)
+
+    if not res.data:
+        return err("Gagal menambah dosen: tidak ada data dikembalikan", 500)
 
     cache_delete("list:dosen")
     user = strip_hash(res.data)
@@ -234,11 +240,13 @@ def me():
     role = g.current_role
     try:
         if role == "mahasiswa":
-            res = sb.table("mahasiswa").select("*").eq("id", uid).single().execute()
+            res = sb.table("mahasiswa").select("*").eq("id", uid).maybe_single().execute()
         elif role == "dosen":
-            res = sb.table("dosen").select("*").eq("id", uid).single().execute()
+            res = sb.table("dosen").select("*").eq("id", uid).maybe_single().execute()
         else:
-            res = sb.table("admin").select("*").eq("id", uid).single().execute()
+            res = sb.table("admin").select("*").eq("id", uid).maybe_single().execute()
     except APIError:
+        return err("Pengguna tidak ditemukan", 404)
+    if not res.data:
         return err("Pengguna tidak ditemukan", 404)
     return ok(strip_hash(res.data), "Profil pengguna")
