@@ -180,7 +180,13 @@ def _login_table_lookup(role: str, identifier: str, password: str):
         if "@" in ident:
             q = sb.table("admin").select("*").eq("email", ident.lower()).limit(1).execute()
         else:
-            q = sb.table("admin").select("*").eq("username", ident).limit(1).execute()
+            q = (
+                sb.table("admin")
+                .select("*")
+                .ilike("username", ident)
+                .limit(1)
+                .execute()
+            )
         rows = q.data or []
         if not rows:
             return None

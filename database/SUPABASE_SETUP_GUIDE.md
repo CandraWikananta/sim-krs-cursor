@@ -87,6 +87,8 @@ Setelah seed data berhasil, gunakan akun berikut untuk testing:
 
 ## Troubleshooting
 
+**Login admin/dosen/mahasiswa gagal dengan `password123` padahal seed sudah dijalankan** → Versi awal `02_seed_data.sql` memakai bcrypt yang tidak cocok dengan plain text tersebut. Jalankan sekali query di `database/03_fix_bcrypt_seed_password123.sql` di SQL Editor (mengganti hash lama di database), atau kosongkan tabel dan jalankan ulang `02_seed_data.sql` yang sudah diperbaiki.
+
 **Error: "already exists"** → Tabel sudah dibuat sebelumnya. Tidak masalah, script menggunakan `IF NOT EXISTS`.
 
 **Error: "permission denied"** → Pastikan Anda menjalankan SQL menggunakan SQL Editor di dashboard, bukan dari aplikasi eksternal.
